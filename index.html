@@ -4,264 +4,433 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Greatsword V3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0d0f14;
-    --panel: #161a22;
-    --card: #1c212b;
-    --card-hover: #252b38;
-    --text: #e8ebf1;
-    --muted: #8a93a6;
-    --accent: #6ea8ff;
-    --border: #2a303d;
+    --bg: #07060f;
+    --glass: rgba(255, 255, 255, .05);
+    --glass-2: rgba(255, 255, 255, .09);
+    --line: rgba(255, 255, 255, .10);
+    --text: #eef0ff;
+    --muted: #9aa0c3;
+    --a1: #7c5cff;
+    --a2: #22d3ee;
+    --a3: #ff4fd8;
+    --display: "Space Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text);
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  #home { max-width: 1100px; margin: 0 auto; padding: 20px 16px 40px; }
-  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
-  h1 { margin: 0; font-size: 26px; letter-spacing: .5px; flex: 1 1 auto; }
-  h1 span { color: var(--accent); }
-  #search { flex: 1 1 220px; max-width: 320px; padding: 10px 12px; border-radius: 8px;
-    border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 15px; }
-  #tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
-  #tags button { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border);
-    background: var(--panel); color: var(--muted); cursor: pointer; font-size: 13px; }
-  #tags button.on { background: var(--accent); color: #0b1220; border-color: var(--accent); }
-  #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-  .game { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 12px;
-    cursor: pointer; text-align: left; color: var(--text); font: inherit; transition: background .15s, transform .15s; }
-  .game:hover { background: var(--card-hover); transform: translateY(-2px); }
-  .game b { display: block; font-size: 15px; margin-bottom: 4px; }
-  .game small { color: var(--muted); font-size: 12px; }
-  .game.star { border-color: var(--accent); }
-  #empty { color: var(--muted); display: none; padding: 20px 0; }
+  button { font: inherit; color: inherit; }
 
-  #player { display: none; position: fixed; inset: 0; background: #000; flex-direction: column; }
-  #bar { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: var(--panel);
-    border-bottom: 1px solid var(--border); }
-  #bar button { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border);
-    background: var(--card); color: var(--text); cursor: pointer; font-size: 13px; }
-  #bar button:hover { background: var(--card-hover); }
-  #title { flex: 1; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  /* ---------- animated background ---------- */
+  #bg { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+  .blob { position: absolute; width: 60vmax; height: 60vmax; border-radius: 50%; filter: blur(90px); opacity: .35;
+    animation: drift 22s ease-in-out infinite alternate; will-change: transform; }
+  .b1 { background: var(--a1); top: -25vmax; left: -15vmax; }
+  .b2 { background: var(--a2); bottom: -30vmax; right: -20vmax; animation-duration: 28s; opacity: .22; }
+  .b3 { background: var(--a3); top: 30%; left: 40%; width: 40vmax; height: 40vmax; animation-duration: 34s; opacity: .14; }
+  @keyframes drift { from { transform: translate(0, 0) scale(1); } to { transform: translate(8vmax, 6vmax) scale(1.15); } }
+  #bg::after { content: ""; position: absolute; inset: 0;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 48px 48px; opacity: .25;
+    mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse at 50% 0%, #000 20%, transparent 75%); }
+  body.playing #bg { display: none; }
+
+  /* ---------- home ---------- */
+  #home { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 28px 16px 60px; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; margin-bottom: 26px; }
+  .logo { flex: 1 1 auto; display: flex; align-items: center; gap: 14px; }
+  .logo-mark { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; font-size: 26px;
+    background: linear-gradient(135deg, var(--a1), var(--a3)); box-shadow: 0 0 30px rgba(124, 92, 255, .55); }
+  .logo h1 { margin: 0; font-family: var(--display); font-size: clamp(26px, 5vw, 38px); letter-spacing: 3px; line-height: 1;
+    background: linear-gradient(90deg, #fff, #c9bfff 40%, var(--a2)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .logo p { margin: 6px 0 0; color: var(--muted); font-size: 13px; letter-spacing: .5px; }
+  .search { position: relative; flex: 1 1 260px; max-width: 360px; }
+  .search input { width: 100%; padding: 13px 44px 13px 42px; border-radius: 14px; border: 1px solid var(--line);
+    background: var(--glass); color: var(--text); font-size: 15px; outline: none; backdrop-filter: blur(10px);
+    transition: border-color .2s, box-shadow .2s; }
+  .search input:focus { border-color: var(--a1); box-shadow: 0 0 0 4px rgba(124, 92, 255, .2); }
+  .search svg { position: absolute; z-index: 1; pointer-events: none; color: var(--muted); left: 14px; top: 50%; transform: translateY(-50%); opacity: .6; }
+  .search kbd { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 11px; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 6px; padding: 2px 7px; }
+
+  /* hero */
+  #hero { position: relative; overflow: hidden; border-radius: 22px; padding: 28px; margin-bottom: 26px; min-height: 190px;
+    display: flex; flex-direction: column; justify-content: flex-end; border: 1px solid var(--line); cursor: pointer;
+    background: radial-gradient(circle at 85% 30%, rgba(34, 211, 238, .35), transparent 45%),
+                linear-gradient(120deg, #1b3b1f 0%, #2e5d2a 35%, #1a1340 100%); }
+  #hero::before { content: ""; position: absolute; inset: 0; opacity: .18;
+    background-image: linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%),
+                      linear-gradient(45deg, #000 25%, transparent 25%, transparent 75%, #000 75%);
+    background-size: 32px 32px; background-position: 0 0, 16px 16px; }
+  #hero .emoji { position: absolute; right: 26px; top: 50%; transform: translateY(-50%) rotate(-8deg); font-size: clamp(70px, 14vw, 130px);
+    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .5)); transition: transform .3s; }
+  @media (max-width: 560px) { #hero .emoji { top: 18px; right: 14px; transform: rotate(-8deg); font-size: 56px; opacity: .9; } #hero p { max-width: 100%; } }
+  #hero:hover .emoji { transform: translateY(-50%) rotate(0deg) scale(1.06); }
+  #hero .tag { position: relative; align-self: flex-start; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
+    padding: 5px 10px; border-radius: 999px; background: rgba(0, 0, 0, .35); border: 1px solid rgba(255, 255, 255, .2); margin-bottom: 10px; }
+  #hero h2 { position: relative; margin: 0 0 6px; font-family: var(--display); font-size: clamp(24px, 4.5vw, 40px); }
+  #hero p { position: relative; margin: 0 0 16px; color: #d7dcff; max-width: 440px; font-size: 14px; }
+  .btn-play { position: relative; align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; border: 0; cursor: pointer;
+    padding: 11px 20px; border-radius: 12px; font-weight: 700; color: #0b0720;
+    background: linear-gradient(90deg, #fff, #dcd4ff); box-shadow: 0 8px 24px rgba(0, 0, 0, .35); transition: transform .15s; }
+  .btn-play:hover { transform: translateY(-2px); }
+
+  /* tabs */
+  #tabs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 20px; scrollbar-width: none; }
+  #tabs::-webkit-scrollbar { display: none; }
+  #tabs button { flex: none; padding: 8px 15px; border-radius: 999px; border: 1px solid var(--line); background: var(--glass);
+    color: var(--muted); cursor: pointer; font-size: 13px; font-weight: 600; transition: all .15s; white-space: nowrap; }
+  #tabs button:hover { color: var(--text); background: var(--glass-2); }
+  #tabs button.on { color: #fff; border-color: transparent; background: linear-gradient(90deg, var(--a1), var(--a3));
+    box-shadow: 0 4px 18px rgba(124, 92, 255, .45); }
+
+  .section-title { display: flex; align-items: baseline; gap: 10px; margin: 0 0 14px; font-family: var(--display); font-size: 18px; }
+  .section-title span { color: var(--muted); font-size: 13px; font-family: inherit; font-weight: 400; }
+
+  /* cards */
+  #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 14px; }
+  .card { position: relative; border: 1px solid var(--line); border-radius: 18px; padding: 0; cursor: pointer; text-align: left;
+    background: var(--glass); overflow: hidden; transition: transform .2s, box-shadow .2s, border-color .2s; backdrop-filter: blur(8px); }
+  .card:hover, .card:focus-visible { transform: translateY(-5px); border-color: hsla(var(--h), 90%, 70%, .6);
+    box-shadow: 0 14px 34px hsla(var(--h), 90%, 50%, .35); outline: none; }
+  .card .art { height: 104px; display: grid; place-items: center; font-size: 46px; position: relative;
+    background: radial-gradient(circle at 30% 20%, hsla(var(--h), 95%, 70%, .9), transparent 60%),
+                linear-gradient(135deg, hsl(var(--h), 70%, 38%), hsl(calc(var(--h) + 40), 70%, 22%)); }
+  .card .art span { transition: transform .25s; filter: drop-shadow(0 6px 12px rgba(0, 0, 0, .4)); }
+  .card:hover .art span { transform: scale(1.18) rotate(-6deg); }
+  .card .info { padding: 11px 12px 13px; }
+  .card b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .card small { color: var(--muted); font-size: 12px; }
+  .card .hot { position: absolute; top: 8px; left: 8px; font-size: 10px; font-weight: 800; letter-spacing: 1px; padding: 3px 7px;
+    border-radius: 6px; background: rgba(0, 0, 0, .45); color: #ffd35c; }
+  .fav { position: absolute; top: 6px; right: 6px; width: 30px; height: 30px; border-radius: 9px; border: 0; cursor: pointer;
+    background: rgba(0, 0, 0, .35); color: #fff; font-size: 15px; display: grid; place-items: center; opacity: 0; transition: opacity .15s; }
+  .card:hover .fav, .fav.on { opacity: 1; }
+  .fav.on { color: #ffd35c; }
+  #empty { color: var(--muted); display: none; padding: 30px 0; text-align: center; }
+  footer { margin-top: 36px; color: var(--muted); font-size: 12px; text-align: center; opacity: .7; }
+
+  /* ---------- player ---------- */
+  #player { display: none; position: fixed; inset: 0; z-index: 10; background: #000; flex-direction: column; }
+  body.playing #player { display: flex; }
+  body.playing #home { display: none; }
+  #bar { display: flex; align-items: center; gap: 6px; padding: 7px 10px; background: rgba(12, 10, 28, .95);
+    border-bottom: 1px solid var(--line); }
+  #bar button { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--glass); cursor: pointer; font-size: 13px; font-weight: 600; transition: background .15s; }
+  #bar button:hover { background: var(--glass-2); }
+  #bar .back { background: linear-gradient(90deg, var(--a1), var(--a3)); border-color: transparent; }
+  #title { flex: 1; min-width: 0; font-family: var(--display); font-weight: 700; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 0 6px; }
+  #bar .lbl { display: inline; }
+  @media (max-width: 560px) { #bar .lbl { display: none; } }
   #stage { position: relative; flex: 1; }
-  #frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
-  #loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
-    justify-content: center; gap: 12px; color: var(--muted); background: var(--bg); }
-  #prog { width: min(360px, 80%); height: 8px; border-radius: 4px; background: var(--card); overflow: hidden; }
-  #prog div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+  #stage iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
+  #loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 16px; background: radial-gradient(circle at 50% 40%, #1a1440, var(--bg) 70%); z-index: 2; text-align: center; padding: 16px; }
+  .spinner { width: 54px; height: 54px; border-radius: 50%; border: 4px solid rgba(255, 255, 255, .1);
+    border-top-color: var(--a2); border-right-color: var(--a1); animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loading .name { font-family: var(--display); font-size: 22px; font-weight: 700; }
+  #prog { width: min(340px, 80%); height: 8px; border-radius: 6px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+  #prog div { height: 100%; width: 0; background: linear-gradient(90deg, var(--a1), var(--a2)); transition: width .2s; }
+  #msg { color: var(--muted); font-size: 13px; }
+  #hint { color: var(--muted); font-size: 12px; opacity: 0; transition: opacity .4s; max-width: 380px; }
+  #hint.show { opacity: .85; }
+
+  @media (prefers-reduced-motion: reduce) { .blob, .spinner { animation: none; } }
 </style>
 </head>
 <body>
 
+<div id="bg"><div class="blob b1"></div><div class="blob b2"></div><div class="blob b3"></div></div>
+
 <div id="home">
   <header>
-    <h1>Greatsword <span>V3</span></h1>
-    <input id="search" type="search" placeholder="Search games..." autocomplete="off">
+    <div class="logo">
+      <div class="logo-mark">⚔️</div>
+      <div>
+        <h1>GREATSWORD</h1>
+        <p id="count">V3 · games load instantly, no downloads</p>
+      </div>
+    </div>
+    <label class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="search" type="search" placeholder="Search games" autocomplete="off" aria-label="Search games">
+      <kbd>/</kbd>
+    </label>
   </header>
-  <div id="tags"></div>
+
+  <div id="hero" role="button" tabindex="0" aria-label="Play Eaglercraft 1.12.2">
+    <div class="emoji">⛏️</div>
+    <div class="tag">Featured</div>
+    <h2>Eaglercraft 1.12.2</h2>
+    <p>Full Minecraft 1.12 in your browser. Singleplayer worlds save automatically.</p>
+    <button class="btn-play" tabindex="-1">▶ Play now</button>
+  </div>
+
+  <nav id="tabs"></nav>
+  <h3 class="section-title" id="section">All games <span id="shown"></span></h3>
   <div id="grid"></div>
-  <div id="empty">No games match that search.</div>
+  <div id="empty">Nothing here yet.</div>
+  <footer>Games from the Ultimate Game Stash · all rights belong to their creators</footer>
 </div>
 
 <div id="player">
   <div id="bar">
-    <button id="back">&larr; Back</button>
+    <button class="back" id="back" title="Back to games">←<span class="lbl"> Games</span></button>
     <span id="title"></span>
-    <button id="reload">Reload</button>
-    <button id="newtab">New tab</button>
-    <button id="full">Fullscreen</button>
+    <button id="reload" title="Reload">⟳<span class="lbl"> Reload</span></button>
+    <button id="newtab" title="Open in a new tab">↗<span class="lbl"> New tab</span></button>
+    <button id="full" title="Fullscreen">⛶<span class="lbl"> Fullscreen</span></button>
   </div>
   <div id="stage">
-    <iframe id="frame" allow="fullscreen; autoplay; gamepad; pointer-lock; clipboard-read; clipboard-write" allowfullscreen></iframe>
-    <div id="loading"><div id="msg">Loading...</div><div id="prog"><div></div></div></div>
+    <div id="loading">
+      <div class="spinner"></div>
+      <div class="name" id="lname"></div>
+      <div id="prog"><div></div></div>
+      <div id="msg">Loading...</div>
+      <div id="hint">Taking a while? The first load of big games can take a minute. If the screen stays black, try Reload or New tab.</div>
+    </div>
   </div>
 </div>
 
 <script>
 (function () {
-  // Game files live in the /games folder of this repo and are served by raw.githubusercontent.com
-  // (supports CORS and files up to 100 MB, which the Eaglercraft builds need). Tried in order.
+  // Game files live in /games of this repo, served by raw.githubusercontent.com (CORS-enabled). Tried in order.
   var BASES = [
     "https://raw.githubusercontent.com/aadamyahyakamran-commits/Greatsword-V3/main/games/",
     "https://raw.githubusercontent.com/aadamyahyakamran-commits/Greatsword-V3/claude/vigilant-turing-qncum6/games/"
   ];
 
+  // [file, title, category, emoji, hue, hot]
   var GAMES = [
-    ["eaglercraft-1-12", "Eaglercraft 1.12.2", "Minecraft", 1],
-    ["eaglercraft-1-8", "EaglercraftX 1.8.8", "Minecraft", 1],
-    ["eaglercraft-1-5", "Eaglercraft 1.5.2", "Minecraft", 0],
-    ["plants-vs-zombies", "Plants vs. Zombies", "Strategy", 1],
-    ["bloons-td-6", "Bloons TD 6", "Strategy", 0],
-    ["vampire-survivors", "Vampire Survivors", "Action", 1],
-    ["survev-io", "Survev.io", "Action", 1],
-    ["bad-time-simulator", "Bad Time Simulator", "Action", 0],
-    ["slither-io", "Slither.io", "Arcade", 0],
-    ["agario-lite", "Agar.io Lite", "Arcade", 0],
-    ["paper-io", "Paper.io", "Arcade", 0],
-    ["crossy-road", "Crossy Road", "Arcade", 1],
-    ["jetpack-joyride", "Jetpack Joyride", "Arcade", 1],
-    ["tunnel-rush", "Tunnel Rush", "Arcade", 0],
-    ["dino", "Chrome Dino", "Arcade", 0],
-    ["hextris", "Hextris", "Arcade", 0],
-    ["geometry-dash", "Geometry Dash", "Platformer", 1],
-    ["run-3", "Run 3", "Platformer", 1],
-    ["vex-7", "Vex 7", "Platformer", 0],
-    ["stickman-hook", "Stickman Hook", "Platformer", 0],
-    ["super-mario-bros", "Super Mario Bros", "Platformer", 1],
-    ["fireboy-watergirl-2", "Fireboy & Watergirl 2", "Platformer", 0],
-    ["getting-over-it", "Getting Over It", "Platformer", 0],
-    ["retro-bowl", "Retro Bowl", "Sports", 1],
-    ["basketball-stars", "Basketball Stars", "Sports", 0],
-    ["polytrack", "PolyTrack", "Racing", 1],
-    ["moto-x3m-2", "Moto X3M 2", "Racing", 1],
-    ["slow-roads", "Slow Roads", "Racing", 0],
-    ["fnaf-1", "Five Nights at Freddy's", "Horror", 1],
-    ["fnaf-2", "FNAF 2", "Horror", 0],
-    ["fnaf-3", "FNAF 3", "Horror", 0],
-    ["fnaf-4", "FNAF 4", "Horror", 0],
-    ["friday-night-funkin", "Friday Night Funkin'", "Music", 1],
-    ["cookie-clicker", "Cookie Clicker", "Idle", 1],
-    ["doge-miner", "Doge Miner", "Idle", 0],
-    ["tiny-fishing", "Tiny Fishing", "Idle", 0],
-    ["2048", "2048", "Puzzle", 0],
-    ["cut-the-rope", "Cut the Rope", "Puzzle", 1],
-    ["wordle", "Wordle", "Puzzle", 0]
+    ["eaglercraft-1-12", "Eaglercraft 1.12.2", "Minecraft", "⛏️", 120, 1],
+    ["eaglercraft-1-8", "EaglercraftX 1.8.8", "Minecraft", "🧱", 100, 1],
+    ["eaglercraft-1-5", "Eaglercraft 1.5.2", "Minecraft", "🌲", 140, 0],
+    ["polytrack", "PolyTrack", "Racing", "🏎️", 190, 1],
+    ["moto-x3m-2", "Moto X3M 2", "Racing", "🏍️", 20, 1],
+    ["slow-roads", "Slow Roads", "Racing", "🛣️", 200, 0],
+    ["plants-vs-zombies", "Plants vs. Zombies", "Strategy", "🌻", 95, 1],
+    ["bloons-td-6", "Bloons TD 6", "Strategy", "🎈", 330, 0],
+    ["vampire-survivors", "Vampire Survivors", "Action", "🧛", 350, 1],
+    ["survev-io", "Survev.io", "Action", "🔫", 80, 1],
+    ["bad-time-simulator", "Bad Time Simulator", "Action", "💀", 210, 0],
+    ["slither-io", "Slither.io", "Arcade", "🐍", 150, 0],
+    ["agario-lite", "Agar.io Lite", "Arcade", "🟢", 170, 0],
+    ["paper-io", "Paper.io", "Arcade", "📄", 260, 0],
+    ["crossy-road", "Crossy Road", "Arcade", "🐔", 45, 1],
+    ["jetpack-joyride", "Jetpack Joyride", "Arcade", "🚀", 15, 1],
+    ["tunnel-rush", "Tunnel Rush", "Arcade", "🌀", 280, 0],
+    ["dino", "Chrome Dino", "Arcade", "🦖", 0, 0],
+    ["hextris", "Hextris", "Arcade", "⬢", 300, 0],
+    ["geometry-dash", "Geometry Dash", "Platformer", "🟨", 55, 1],
+    ["run-3", "Run 3", "Platformer", "👽", 230, 1],
+    ["vex-7", "Vex 7", "Platformer", "🏃", 5, 0],
+    ["stickman-hook", "Stickman Hook", "Platformer", "🪝", 180, 0],
+    ["super-mario-bros", "Super Mario Bros", "Platformer", "🍄", 0, 1],
+    ["fireboy-watergirl-2", "Fireboy & Watergirl 2", "Platformer", "🔥", 25, 0],
+    ["getting-over-it", "Getting Over It", "Platformer", "🔨", 35, 0],
+    ["retro-bowl", "Retro Bowl", "Sports", "🏈", 130, 1],
+    ["basketball-stars", "Basketball Stars", "Sports", "🏀", 25, 0],
+    ["fnaf-1", "Five Nights at Freddy's", "Horror", "🐻", 30, 1],
+    ["fnaf-2", "FNAF 2", "Horror", "🎭", 280, 0],
+    ["fnaf-3", "FNAF 3", "Horror", "🐰", 90, 0],
+    ["fnaf-4", "FNAF 4", "Horror", "🛏️", 250, 0],
+    ["friday-night-funkin", "Friday Night Funkin'", "Music", "🎤", 310, 1],
+    ["cookie-clicker", "Cookie Clicker", "Idle", "🍪", 35, 1],
+    ["doge-miner", "Doge Miner", "Idle", "🐕", 45, 0],
+    ["tiny-fishing", "Tiny Fishing", "Idle", "🎣", 195, 0],
+    ["2048", "2048", "Puzzle", "🔢", 40, 0],
+    ["cut-the-rope", "Cut the Rope", "Puzzle", "🍬", 110, 1],
+    ["wordle", "Wordle", "Puzzle", "🟩", 125, 0]
   ];
+  var BY_ID = {};
+  GAMES.forEach(function (g) { BY_ID[g[0]] = g; });
 
   var $ = function (id) { return document.getElementById(id); };
-  var grid = $("grid"), search = $("search"), tags = $("tags");
-  var frame = $("frame"), player = $("player"), home = $("home");
-  var loading = $("loading"), msg = $("msg"), bar = $("prog").firstElementChild;
-  var cache = {}, current = null, blobUrl = null, activeTag = "All", loadToken = 0;
+  var grid = $("grid"), search = $("search"), tabs = $("tabs"), stage = $("stage");
+  var loading = $("loading"), msg = $("msg"), bar = $("prog").firstElementChild, hint = $("hint");
+  var cache = {}, current = null, frame = null, loadToken = 0, hintTimer = 0;
 
-  // ---- Menu ----
-  var cats = ["All"];
-  GAMES.forEach(function (g) { if (cats.indexOf(g[2]) < 0) cats.push(g[2]); });
-  cats.forEach(function (c) {
+  // Per-viewer favorites and recents. Storage can be blocked, so every access is guarded.
+  function readList(key) { try { return JSON.parse(localStorage.getItem(key)) || []; } catch (e) { return []; } }
+  function writeList(key, v) { try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) {} }
+  var favs = readList("gs-favs"), recent = readList("gs-recent");
+
+  $("count").textContent = "V3 · " + GAMES.length + " games · no WebAssembly";
+
+  // ---------- menu ----------
+  var TABS = [["All", "🎮 All"], ["★", "★ Favorites"], ["Recent", "🕘 Recent"]];
+  var seen = {};
+  GAMES.forEach(function (g) { if (!seen[g[2]]) { seen[g[2]] = 1; TABS.push([g[2], g[2]]); } });
+  var activeTab = "All";
+  TABS.forEach(function (t) {
     var b = document.createElement("button");
-    b.textContent = c;
-    if (c === activeTag) b.className = "on";
+    b.textContent = t[1];
+    if (t[0] === activeTab) b.className = "on";
     b.onclick = function () {
-      activeTag = c;
-      [].forEach.call(tags.children, function (x) { x.className = x === b ? "on" : ""; });
+      activeTab = t[0];
+      [].forEach.call(tabs.children, function (x) { x.className = x === b ? "on" : ""; });
       render();
     };
-    tags.appendChild(b);
+    tabs.appendChild(b);
   });
 
+  function card(g) {
+    var el = document.createElement("div");
+    el.className = "card";
+    el.tabIndex = 0;
+    el.setAttribute("role", "button");
+    el.style.setProperty("--h", g[4]);
+    el.innerHTML = '<div class="art"><span></span></div><div class="info"><b></b><small></small></div>' +
+      '<button class="fav" title="Favorite" aria-label="Favorite">★</button>';
+    el.querySelector(".art span").textContent = g[3];
+    el.querySelector("b").textContent = g[1];
+    el.querySelector("small").textContent = g[2];
+    if (g[5]) { var hot = document.createElement("div"); hot.className = "hot"; hot.textContent = "HOT"; el.appendChild(hot); }
+    var fav = el.querySelector(".fav");
+    if (favs.indexOf(g[0]) >= 0) fav.className = "fav on";
+    fav.onclick = function (e) {
+      e.stopPropagation();
+      var i = favs.indexOf(g[0]);
+      if (i >= 0) favs.splice(i, 1); else favs.push(g[0]);
+      writeList("gs-favs", favs);
+      if (activeTab === "★") render(); else fav.className = i >= 0 ? "fav" : "fav on";
+    };
+    el.onclick = function () { play(g); };
+    el.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); play(g); } };
+    return el;
+  }
+
   function render() {
-    var q = search.value.trim().toLowerCase(), shown = 0;
+    var q = search.value.trim().toLowerCase();
+    var list;
+    if (activeTab === "★") list = favs.map(function (id) { return BY_ID[id]; });
+    else if (activeTab === "Recent") list = recent.map(function (id) { return BY_ID[id]; });
+    else list = GAMES.filter(function (g) { return activeTab === "All" || g[2] === activeTab; });
+    list = list.filter(function (g) { return g && (!q || (g[0] + " " + g[1] + " " + g[2]).replace(/-/g, " ").toLowerCase().indexOf(q) >= 0); });
     grid.innerHTML = "";
-    GAMES.forEach(function (g) {
-      if (activeTag !== "All" && g[2] !== activeTag) return;
-      if (q && (g[1] + " " + g[2]).toLowerCase().indexOf(q) < 0) return;
-      var el = document.createElement("button");
-      el.className = "game" + (g[3] ? " star" : "");
-      el.innerHTML = "<b></b><small></small>";
-      el.firstChild.textContent = g[1];
-      el.lastChild.textContent = g[2];
-      el.onclick = function () { play(g); };
-      grid.appendChild(el);
-      shown++;
-    });
-    $("empty").style.display = shown ? "none" : "block";
+    list.forEach(function (g) { grid.appendChild(card(g)); });
+    $("section").firstChild.textContent = (q ? "Results" : activeTab === "All" ? "All games" : activeTab === "★" ? "Favorites" : activeTab === "Recent" ? "Recently played" : activeTab) + " ";
+    $("shown").textContent = list.length + (list.length === 1 ? " game" : " games");
+    $("empty").style.display = list.length ? "none" : "block";
+    $("empty").textContent = activeTab === "★" && !q ? "Tap the ★ on a game to save it here." : activeTab === "Recent" && !q ? "Games you play show up here." : "No games match that search.";
   }
   search.oninput = render;
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "/" && document.activeElement !== search && !document.body.classList.contains("playing")) {
+      e.preventDefault(); search.focus();
+    }
+  });
+  $("hero").onclick = function () { play(BY_ID["eaglercraft-1-12"]); };
+  $("hero").onkeydown = function (e) { if (e.key === "Enter") play(BY_ID["eaglercraft-1-12"]); };
   render();
 
-  // ---- Loading ----
-  // Streams the file so big downloads (Eaglercraft is ~30 MB) show real progress.
+  // ---------- loading ----------
   function download(url, onProgress) {
     return fetch(url).then(function (res) {
       if (!res.ok) throw new Error("HTTP " + res.status);
       var total = +res.headers.get("Content-Length") || 0;
       if (!res.body || !res.body.getReader) return res.text();
-      var reader = res.body.getReader(), chunks = [], got = 0;
+      var reader = res.body.getReader(), parts = [], got = 0;
       return (function pump() {
         return reader.read().then(function (r) {
-          if (r.done) return new Blob(chunks).text();
-          chunks.push(r.value);
-          got += r.value.length;
+          if (r.done) return new Blob(parts).text();
+          parts.push(r.value); got += r.value.length;
           onProgress(got, total);
           return pump();
         });
       })();
     });
   }
-
-  function fetchGame(slug, onProgress) {
+  function fetchGame(id, onProgress) {
     var i = 0;
     function attempt() {
-      return download(BASES[i] + slug + ".html", onProgress).catch(function (e) {
+      return download(BASES[i] + id + ".html", onProgress).catch(function (e) {
         if (++i < BASES.length) return attempt();
         throw e;
       });
     }
     return attempt();
   }
-
   function mb(n) { return (n / 1048576).toFixed(1) + " MB"; }
+
+  // Games are written into a fresh same-origin about:blank frame. That gives them the same
+  // environment as pasting the file straight into Google Sites (normal https location, storage, workers).
+  function mount(html) {
+    if (frame) frame.remove();
+    frame = document.createElement("iframe");
+    frame.setAttribute("allow", "fullscreen; autoplay; gamepad; clipboard-read; clipboard-write");
+    frame.setAttribute("allowfullscreen", "");
+    stage.appendChild(frame);
+    var d = frame.contentDocument;
+    d.open();
+    d.write(html);
+    d.close();
+    try { frame.contentWindow.focus(); } catch (e) {}
+  }
 
   function play(g) {
     var token = ++loadToken;
     current = g;
-    home.style.display = "none";
-    player.style.display = "flex";
-    $("title").textContent = g[1];
+    recent = [g[0]].concat(recent.filter(function (x) { return x !== g[0]; })).slice(0, 12);
+    writeList("gs-recent", recent);
+    document.body.classList.add("playing");
+    $("title").textContent = g[3] + "  " + g[1];
+    $("lname").textContent = g[1];
     loading.style.display = "flex";
     bar.style.width = "0";
-    msg.textContent = "Loading " + g[1] + "...";
-    frame.src = "about:blank";
+    msg.textContent = "Loading...";
+    hint.className = "";
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(function () { hint.className = "show"; }, 12000);
+    if (frame) { frame.remove(); frame = null; }
 
     var ready = cache[g[0]] ? Promise.resolve(cache[g[0]]) : fetchGame(g[0], function (got, total) {
       if (token !== loadToken) return;
-      bar.style.width = total ? Math.min(100, got / total * 100) + "%" : "50%";
-      msg.textContent = "Loading " + g[1] + "... " + mb(got) + (total ? " / " + mb(total) : "");
+      bar.style.width = total && got <= total ? (got / total * 100) + "%" : "70%";
+      msg.textContent = mb(got) + (total && got <= total ? " / " + mb(total) : "");
     });
-
     ready.then(function (html) {
       if (token !== loadToken) return;
-      // Keep small games in memory for instant replay; skip the huge Eaglercraft files.
-      if (html.length < 5e6) cache[g[0]] = html;
-      if (blobUrl) URL.revokeObjectURL(blobUrl);
-      blobUrl = URL.createObjectURL(new Blob([html], { type: "text/html" }));
-      frame.src = blobUrl;
-      loading.style.display = "none";
-      frame.focus();
+      cache[g[0]] = html;
+      bar.style.width = "100%";
+      mount(html);
+      // Give the game a moment to paint before revealing it.
+      setTimeout(function () { if (token === loadToken) loading.style.display = "none"; }, 350);
     }).catch(function (e) {
       if (token !== loadToken) return;
-      msg.textContent = "Couldn't load " + g[1] + " (" + e.message + "). Check your connection and hit Reload.";
+      msg.textContent = "Couldn't load " + g[1] + " (" + e.message + "). Check your connection and press Reload.";
     });
   }
 
   function back() {
     loadToken++;
-    frame.src = "about:blank";
-    if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
-    player.style.display = "none";
-    home.style.display = "block";
+    clearTimeout(hintTimer);
+    if (frame) { frame.remove(); frame = null; }
+    document.body.classList.remove("playing");
     if (document.fullscreenElement) document.exitFullscreen();
+    render();
   }
 
   $("back").onclick = back;
-  $("reload").onclick = function () { if (current) play(current); };
+  $("reload").onclick = function () { if (current) { delete cache[current[0]]; play(current); } };
   $("full").onclick = function () {
-    var el = $("stage");
-    (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el);
+    (stage.requestFullscreen || stage.webkitRequestFullscreen || function () {}).call(stage);
   };
-  // Opens the running game in its own about:blank tab (handy when the embed box is small).
+  // Opens the game in its own about:blank tab, useful when the embed box is small.
   $("newtab").onclick = function () {
-    if (!current) return;
+    if (!current || !cache[current[0]]) return;
     var w = window.open("about:blank", "_blank");
-    if (!w) { alert("Pop-up blocked - allow pop-ups for this site."); return; }
-    w.document.title = current[1];
-    w.document.body.style.margin = "0";
-    var f = w.document.createElement("iframe");
-    f.style.cssText = "border:0;position:fixed;inset:0;width:100%;height:100%";
-    f.allow = "fullscreen; autoplay; gamepad; pointer-lock";
-    f.src = blobUrl || "about:blank";
-    w.document.body.appendChild(f);
+    if (!w) { alert("Pop-up blocked. Allow pop-ups for this site and try again."); return; }
+    w.document.open();
+    w.document.write(cache[current[0]]);
+    w.document.close();
+    back();
   };
 })();
 </script>

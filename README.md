@@ -14,6 +14,12 @@ The embed code is small (~11 KB). Each game file is downloaded from the `games/`
 
 Game files come from the Ultimate Game Stash (via the DogeSploit/UGS-Main rehost). All rights belong to their original creators.
 
+## How games load
+
+The launcher downloads a game's HTML file and writes it into a fresh same-origin frame, which is the same setup as pasting that file straight into Google Sites. Downloaded games are kept in memory, so opening one a second time is instant.
+
+Eaglercraft is split into `games/eagler/<version>/` (`classes.js` plus binary `.epk` assets). The small `eaglercraft-*.html` pages download those files with a progress bar and store them in the browser's Cache Storage, so after the first time the game opens without downloading again. That's much faster than the original 30 MB single-file versions, which froze the page while the browser parsed them.
+
 ## PolyTrack (no-WASM build)
 
 PolyTrack normally needs WebAssembly for its physics engine and math. `games/polytrack.html` is a patched copy: the physics engine and math module were converted to plain JavaScript with Binaryen's `wasm2js`, and 3D models use three.js's pure-JS Draco decoder. It works in browsers where WebAssembly is disabled.
