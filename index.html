@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Greatsword V3</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --panel: #161a22;
+    --card: #1c212b;
+    --card-hover: #252b38;
+    --text: #e8ebf1;
+    --muted: #8a93a6;
+    --accent: #6ea8ff;
+    --border: #2a303d;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #home { max-width: 1100px; margin: 0 auto; padding: 20px 16px 40px; }
+  header { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 16px; }
+  h1 { margin: 0; font-size: 26px; letter-spacing: .5px; flex: 1 1 auto; }
+  h1 span { color: var(--accent); }
+  #search { flex: 1 1 220px; max-width: 320px; padding: 10px 12px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--panel); color: var(--text); font-size: 15px; }
+  #tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+  #tags button { padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--panel); color: var(--muted); cursor: pointer; font-size: 13px; }
+  #tags button.on { background: var(--accent); color: #0b1220; border-color: var(--accent); }
+  #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .game { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px 12px;
+    cursor: pointer; text-align: left; color: var(--text); font: inherit; transition: background .15s, transform .15s; }
+  .game:hover { background: var(--card-hover); transform: translateY(-2px); }
+  .game b { display: block; font-size: 15px; margin-bottom: 4px; }
+  .game small { color: var(--muted); font-size: 12px; }
+  .game.star { border-color: var(--accent); }
+  #empty { color: var(--muted); display: none; padding: 20px 0; }
+
+  #player { display: none; position: fixed; inset: 0; background: #000; flex-direction: column; }
+  #bar { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: var(--panel);
+    border-bottom: 1px solid var(--border); }
+  #bar button { padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--card); color: var(--text); cursor: pointer; font-size: 13px; }
+  #bar button:hover { background: var(--card-hover); }
+  #title { flex: 1; font-weight: 600; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  #stage { position: relative; flex: 1; }
+  #frame { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: #000; }
+  #loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 12px; color: var(--muted); background: var(--bg); }
+  #prog { width: min(360px, 80%); height: 8px; border-radius: 4px; background: var(--card); overflow: hidden; }
+  #prog div { height: 100%; width: 0; background: var(--accent); transition: width .2s; }
+</style>
+</head>
+<body>
+
+<div id="home">
+  <header>
+    <h1>Greatsword <span>V3</span></h1>
+    <input id="search" type="search" placeholder="Search games..." autocomplete="off">
+  </header>
+  <div id="tags"></div>
+  <div id="grid"></div>
+  <div id="empty">No games match that search.</div>
+</div>
+
+<div id="player">
+  <div id="bar">
+    <button id="back">&larr; Back</button>
+    <span id="title"></span>
+    <button id="reload">Reload</button>
+    <button id="newtab">New tab</button>
+    <button id="full">Fullscreen</button>
+  </div>
+  <div id="stage">
+    <iframe id="frame" allow="fullscreen; autoplay; gamepad; pointer-lock; clipboard-read; clipboard-write" allowfullscreen></iframe>
+    <div id="loading"><div id="msg">Loading...</div><div id="prog"><div></div></div></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  // Game files live in the /games folder of this repo and are served by raw.githubusercontent.com
+  // (supports CORS and files up to 100 MB, which the Eaglercraft builds need). Tried in order.
+  var BASES = [
+    "https://raw.githubusercontent.com/aadamyahyakamran-commits/Greatsword-V3/main/games/",
+    "https://raw.githubusercontent.com/aadamyahyakamran-commits/Greatsword-V3/claude/vigilant-turing-qncum6/games/"
+  ];
+
+  var GAMES = [
+    ["eaglercraft-1-12", "Eaglercraft 1.12.2", "Minecraft", 1],
+    ["eaglercraft-1-8", "EaglercraftX 1.8.8", "Minecraft", 1],
+    ["eaglercraft-1-5", "Eaglercraft 1.5.2", "Minecraft", 0],
+    ["plants-vs-zombies", "Plants vs. Zombies", "Strategy", 1],
+    ["bloons-td-6", "Bloons TD 6", "Strategy", 0],
+    ["vampire-survivors", "Vampire Survivors", "Action", 1],
+    ["survev-io", "Survev.io", "Action", 1],
+    ["bad-time-simulator", "Bad Time Simulator", "Action", 0],
+    ["slither-io", "Slither.io", "Arcade", 0],
+    ["agario-lite", "Agar.io Lite", "Arcade", 0],
+    ["paper-io", "Paper.io", "Arcade", 0],
+    ["crossy-road", "Crossy Road", "Arcade", 1],
+    ["jetpack-joyride", "Jetpack Joyride", "Arcade", 1],
+    ["tunnel-rush", "Tunnel Rush", "Arcade", 0],
+    ["dino", "Chrome Dino", "Arcade", 0],
+    ["hextris", "Hextris", "Arcade", 0],
+    ["geometry-dash", "Geometry Dash", "Platformer", 1],
+    ["run-3", "Run 3", "Platformer", 1],
+    ["vex-7", "Vex 7", "Platformer", 0],
+    ["stickman-hook", "Stickman Hook", "Platformer", 0],
+    ["super-mario-bros", "Super Mario Bros", "Platformer", 1],
+    ["fireboy-watergirl-2", "Fireboy & Watergirl 2", "Platformer", 0],
+    ["getting-over-it", "Getting Over It", "Platformer", 0],
+    ["retro-bowl", "Retro Bowl", "Sports", 1],
+    ["basketball-stars", "Basketball Stars", "Sports", 0],
+    ["moto-x3m-2", "Moto X3M 2", "Racing", 1],
+    ["slow-roads", "Slow Roads", "Racing", 0],
+    ["fnaf-1", "Five Nights at Freddy's", "Horror", 1],
+    ["fnaf-2", "FNAF 2", "Horror", 0],
+    ["fnaf-3", "FNAF 3", "Horror", 0],
+    ["fnaf-4", "FNAF 4", "Horror", 0],
+    ["friday-night-funkin", "Friday Night Funkin'", "Music", 1],
+    ["cookie-clicker", "Cookie Clicker", "Idle", 1],
+    ["doge-miner", "Doge Miner", "Idle", 0],
+    ["tiny-fishing", "Tiny Fishing", "Idle", 0],
+    ["2048", "2048", "Puzzle", 0],
+    ["cut-the-rope", "Cut the Rope", "Puzzle", 1],
+    ["wordle", "Wordle", "Puzzle", 0]
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var grid = $("grid"), search = $("search"), tags = $("tags");
+  var frame = $("frame"), player = $("player"), home = $("home");
+  var loading = $("loading"), msg = $("msg"), bar = $("prog").firstElementChild;
+  var cache = {}, current = null, blobUrl = null, activeTag = "All", loadToken = 0;
+
+  // ---- Menu ----
+  var cats = ["All"];
+  GAMES.forEach(function (g) { if (cats.indexOf(g[2]) < 0) cats.push(g[2]); });
+  cats.forEach(function (c) {
+    var b = document.createElement("button");
+    b.textContent = c;
+    if (c === activeTag) b.className = "on";
+    b.onclick = function () {
+      activeTag = c;
+      [].forEach.call(tags.children, function (x) { x.className = x === b ? "on" : ""; });
+      render();
+    };
+    tags.appendChild(b);
+  });
+
+  function render() {
+    var q = search.value.trim().toLowerCase(), shown = 0;
+    grid.innerHTML = "";
+    GAMES.forEach(function (g) {
+      if (activeTag !== "All" && g[2] !== activeTag) return;
+      if (q && (g[1] + " " + g[2]).toLowerCase().indexOf(q) < 0) return;
+      var el = document.createElement("button");
+      el.className = "game" + (g[3] ? " star" : "");
+      el.innerHTML = "<b></b><small></small>";
+      el.firstChild.textContent = g[1];
+      el.lastChild.textContent = g[2];
+      el.onclick = function () { play(g); };
+      grid.appendChild(el);
+      shown++;
+    });
+    $("empty").style.display = shown ? "none" : "block";
+  }
+  search.oninput = render;
+  render();
+
+  // ---- Loading ----
+  // Streams the file so big downloads (Eaglercraft is ~30 MB) show real progress.
+  function download(url, onProgress) {
+    return fetch(url).then(function (res) {
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      var total = +res.headers.get("Content-Length") || 0;
+      if (!res.body || !res.body.getReader) return res.text();
+      var reader = res.body.getReader(), chunks = [], got = 0;
+      return (function pump() {
+        return reader.read().then(function (r) {
+          if (r.done) return new Blob(chunks).text();
+          chunks.push(r.value);
+          got += r.value.length;
+          onProgress(got, total);
+          return pump();
+        });
+      })();
+    });
+  }
+
+  function fetchGame(slug, onProgress) {
+    var i = 0;
+    function attempt() {
+      return download(BASES[i] + slug + ".html", onProgress).catch(function (e) {
+        if (++i < BASES.length) return attempt();
+        throw e;
+      });
+    }
+    return attempt();
+  }
+
+  function mb(n) { return (n / 1048576).toFixed(1) + " MB"; }
+
+  function play(g) {
+    var token = ++loadToken;
+    current = g;
+    home.style.display = "none";
+    player.style.display = "flex";
+    $("title").textContent = g[1];
+    loading.style.display = "flex";
+    bar.style.width = "0";
+    msg.textContent = "Loading " + g[1] + "...";
+    frame.src = "about:blank";
+
+    var ready = cache[g[0]] ? Promise.resolve(cache[g[0]]) : fetchGame(g[0], function (got, total) {
+      if (token !== loadToken) return;
+      bar.style.width = total ? Math.min(100, got / total * 100) + "%" : "50%";
+      msg.textContent = "Loading " + g[1] + "... " + mb(got) + (total ? " / " + mb(total) : "");
+    });
+
+    ready.then(function (html) {
+      if (token !== loadToken) return;
+      // Keep small games in memory for instant replay; skip the huge Eaglercraft files.
+      if (html.length < 5e6) cache[g[0]] = html;
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+      blobUrl = URL.createObjectURL(new Blob([html], { type: "text/html" }));
+      frame.src = blobUrl;
+      loading.style.display = "none";
+      frame.focus();
+    }).catch(function (e) {
+      if (token !== loadToken) return;
+      msg.textContent = "Couldn't load " + g[1] + " (" + e.message + "). Check your connection and hit Reload.";
+    });
+  }
+
+  function back() {
+    loadToken++;
+    frame.src = "about:blank";
+    if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
+    player.style.display = "none";
+    home.style.display = "block";
+    if (document.fullscreenElement) document.exitFullscreen();
+  }
+
+  $("back").onclick = back;
+  $("reload").onclick = function () { if (current) play(current); };
+  $("full").onclick = function () {
+    var el = $("stage");
+    (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el);
+  };
+  // Opens the running game in its own about:blank tab (handy when the embed box is small).
+  $("newtab").onclick = function () {
+    if (!current) return;
+    var w = window.open("about:blank", "_blank");
+    if (!w) { alert("Pop-up blocked - allow pop-ups for this site."); return; }
+    w.document.title = current[1];
+    w.document.body.style.margin = "0";
+    var f = w.document.createElement("iframe");
+    f.style.cssText = "border:0;position:fixed;inset:0;width:100%;height:100%";
+    f.allow = "fullscreen; autoplay; gamepad; pointer-lock";
+    f.src = blobUrl || "about:blank";
+    w.document.body.appendChild(f);
+  };
+})();
+</script>
+</body>
+</html>

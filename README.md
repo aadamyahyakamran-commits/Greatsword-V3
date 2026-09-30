@@ -1,63 +1,15 @@
-# **Greatsword V3**
+# Greatsword V3
 
-[Discord Server](https://discord.gg/fysNqZY9yn)
+A game launcher you can paste straight into Google Sites. It has 38 games from the Ultimate Game Stash, including Eaglercraft 1.12.2, and none of them use WebAssembly.
 
--------
+## Add it to Google Sites
 
-## Link Tutorials:
-CSB Method: https://youtu.be/ZS109DCg8SM (Made by 5k_explorer on Discord)
+1. Open `index.html` and copy all of it.
+2. In Google Sites, go to **Insert → Embed → Embed code**, paste it, and click **Next → Insert**.
+3. Drag the embed box to make it big. The **Fullscreen** and **New tab** buttons give you more room.
 
-Render Method: https://www.youtube.com/watch?v=hysvVkzfHlo
+The embed code is small (~11 KB). Each game file is downloaded from the `games/` folder of this repo when you click it, so the repo has to stay **public** and the files need to be on the `main` branch (the launcher also checks the `claude/vigilant-turing-qncum6` branch as a fallback).
 
-<img width="960" alt="image" src="https://github.com/Tacogamerman/Greatsword-V3/assets/119009502/73c7f8f1-1994-4ae6-8b4c-51e2b798222a">
+## Credits
 
--------
-
-<img width="960" alt="image" src="https://github.com/Tacogamerman/Greatsword-V3/assets/119009502/bfb5301a-12c5-4446-86f3-515749599102">
-
-
--------
-
-This says 97% html because of the gfiles Lmao
-
-Only deploy this with CodeSandbox and/or Render.
-
-The official link ***is*** going to be slow
-
-# What is Greatsword?
-A stupid project made by a dumb kid in middle school.
-<br>
-This is the sequel to GreatSword v2. Greatsword was an unblocker I made, but it had very outdated scripts and styles compared to new tech. 
-<br>
-I made this repo to hopefully modernize Greatsword, and keep its feel.
-<br>
-Please star if you enjoy, it helps this repo grow.
-
-# Important
-In order to use "unsafe" Greatsword V3 links you must put your pointer in the middle of the "deceptive site" screen, and type "thisisunsafe". This may redirect you to a new tab, or something else. You may have to go back to the same site and repeat this process up to 10 times. Eventually it will become usable.
-
-# Current bugs:
-* Chrome safe browsing may falsely flag links.
-* If this happens, about:blank cloak reports as "unsafe" and typing "thisisunsafe" does not work.
-# Links:
-Discord: https://discord.gg/BMxe6D9CKv
-
-New links ***are*** added to the discord every day.
-
-Credit to this [Gigachad](https://github.com/dragon731012/) for DM Unblocker.
-
-# Other Credits
-Orphanlol - Modifying the README (Three times)
-<br>
-Tacogamerman - Creator of Gsv2
-<br>
-Skool - Creator of skooleagler
-<br>
-Cosmosthedev - Provider of an eaglercraft client folder
-<br>
-I1aw - Provider of Gfiles
-
-
-
-
-
+Game files come from the Ultimate Game Stash (via the DogeSploit/UGS-Main rehost). All rights belong to their original creators.
